@@ -21,3 +21,5 @@ pkg
 gemfiles/*.lock
 
 ## PROJECT::SPECIFIC
+.rspec_status
+.bundle
