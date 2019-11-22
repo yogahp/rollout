@@ -30,10 +30,10 @@ Update data specific to a feature:
 $rollout.set_feature_data(:chat, description: 'foo', release_date: 'bar', whatever: 'baz')
 ```
 
-Check whether a feature is active for a particular user:
+Check whether a feature is active for a particular outlet:
 
 ```ruby
-$rollout.active?(:chat, User.first) # => true/false
+$rollout.active?(:chat, Outlet.first) # => true/false
 ```
 
 Check whether a feature is active globally:
@@ -58,8 +58,8 @@ $rollout.activate_group(:chat, :all)
 You might also want to define your own groups. We have one for our caretakers:
 
 ```ruby
-$rollout.define_group(:caretakers) do |user|
-  user.caretaker?
+$rollout.define_group(:caretakers) do |outlet|
+  outlet.caretaker?
 end
 ```
 
@@ -71,37 +71,37 @@ Deactivate groups like this:
 $rollout.deactivate_group(:chat, :all)
 ```
 
-## Specific Users
+## Specific Outlets
 
-You might want to let a specific user into a beta test or something. If that
-user isn't part of an existing group, you can let them in specifically:
+You might want to let a specific outlet into a beta test or something. If that
+outlet isn't part of an existing group, you can let them in specifically:
 
 ```ruby
-$rollout.activate_user(:chat, @user)
+$rollout.activate_outlet(:chat, @outlet)
 ```
 
 Deactivate them like this:
 
 ```ruby
-$rollout.deactivate_user(:chat, @user)
+$rollout.deactivate_outlet(:chat, @outlet)
 ```
 
-## User Percentages
+## Outlet Percentages
 
 If you're rolling out a new feature, you might want to test the waters by
-slowly enabling it for a percentage of your users.
+slowly enabling it for a percentage of your outlets.
 
 ```ruby
 $rollout.activate_percentage(:chat, 20)
 ```
 
-The algorithm for determining which users get let in is this:
+The algorithm for determining which outlets get let in is this:
 
 ```ruby
-CRC32(user.id) % 100_000 < percentage * 1_000
+CRC32(outlet.id) % 100_000 < percentage * 1_000
 ```
 
-So, for 20%, users 0, 1, 10, 11, 20, 21, etc would be allowed in. Those users
+So, for 20%, outlets 0, 1, 10, 11, 20, 21, etc would be allowed in. Those outlets
 would remain in as the percentage increases.
 
 Deactivate all percentages like this:
@@ -110,18 +110,18 @@ Deactivate all percentages like this:
 $rollout.deactivate_percentage(:chat)
 ```
 
-_Note that activating a feature for 100% of users will also make it active
-"globally". That is when calling Rollout#active? without a user object._
+_Note that activating a feature for 100% of outlets will also make it active
+"globally". That is when calling Rollout#active? without a outlet object._
 
 In some cases you might want to have a feature activated for a random set of
-users. It can come specially handy when using Rollout for split tests.
+outlets. It can come specially handy when using Rollout for split tests.
 
 ```ruby
 $rollout = Rollout.new($redis, randomize_percentage: true)
 ```
 
-When on `randomize_percentage` will make sure that 50% of users for feature A
-are selected independently from users for feature B.
+When on `randomize_percentage` will make sure that 50% of outlets for feature A
+are selected independently from outlets for feature B.
 
 ## Global actions
 

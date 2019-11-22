@@ -8,15 +8,15 @@ RSpec.describe "Rollout" do
 
   describe "when a group is activated" do
     before do
-      @rollout.define_group(:fivesonly) { |user| user.id == 5 }
+      @rollout.define_group(:fivesonly) { |outlet| outlet.id == 5 }
       @rollout.activate_group(:chat, :fivesonly)
     end
 
-    it "the feature is active for users for which the block evaluates to true" do
+    it "the feature is active for outlets for which the block evaluates to true" do
       expect(@rollout).to be_active(:chat, double(id: 5))
     end
 
-    it "is not active for users for which the block evaluates to false" do
+    it "is not active for outlets for which the block evaluates to false" do
       expect(@rollout).not_to be_active(:chat, double(id: 1))
     end
 
@@ -38,7 +38,7 @@ RSpec.describe "Rollout" do
 
   describe "deactivating a group" do
     before do
-      @rollout.define_group(:fivesonly) { |user| user.id == 5 }
+      @rollout.define_group(:fivesonly) { |outlet| outlet.id == 5 }
       @rollout.activate_group(:chat, :all)
       @rollout.activate_group(:chat, :some)
       @rollout.activate_group(:chat, :fivesonly)
@@ -63,10 +63,10 @@ RSpec.describe "Rollout" do
 
   describe "deactivating a feature completely" do
     before do
-      @rollout.define_group(:fivesonly) { |user| user.id == 5 }
+      @rollout.define_group(:fivesonly) { |outlet| outlet.id == 5 }
       @rollout.activate_group(:chat, :all)
       @rollout.activate_group(:chat, :fivesonly)
-      @rollout.activate_user(:chat, double(id: 51))
+      @rollout.activate_outlet(:chat, double(id: 51))
       @rollout.activate_percentage(:chat, 100)
       @rollout.activate(:chat)
       @rollout.deactivate(:chat)
@@ -76,7 +76,7 @@ RSpec.describe "Rollout" do
       expect(@rollout).not_to be_active(:chat, double(id: 0))
     end
 
-    it "removes all of the users" do
+    it "removes all of the outlets" do
       expect(@rollout).not_to be_active(:chat, double(id: 51))
     end
 
@@ -89,150 +89,150 @@ RSpec.describe "Rollout" do
     end
   end
 
-  describe "activating a specific user" do
+  describe "activating a specific outlet" do
     before do
-      @rollout.activate_user(:chat, double(id: 42))
+      @rollout.activate_outlet(:chat, double(id: 42))
     end
 
-    it "is active for that user" do
+    it "is active for that outlet" do
       expect(@rollout).to be_active(:chat, double(id: 42))
     end
 
-    it "remains inactive for other users" do
+    it "remains inactive for other outlets" do
       expect(@rollout).not_to be_active(:chat, double(id: 24))
     end
   end
 
-  describe "activating a specific user by ID" do
+  describe "activating a specific outlet by ID" do
     before do
-      @rollout.activate_user(:chat, 42)
+      @rollout.activate_outlet(:chat, 42)
     end
 
-    it "is active for that user" do
+    it "is active for that outlet" do
       expect(@rollout).to be_active(:chat, double(id: 42))
     end
 
-    it "remains inactive for other users" do
+    it "remains inactive for other outlets" do
       expect(@rollout).not_to be_active(:chat, double(id: 24))
     end
   end
 
-  describe "activating a specific user with a string id" do
+  describe "activating a specific outlet with a string id" do
     before do
-      @rollout.activate_user(:chat, double(id: "user-72"))
+      @rollout.activate_outlet(:chat, double(id: "outlet-72"))
     end
 
-    it "is active for that user" do
-      expect(@rollout).to be_active(:chat, double(id: "user-72"))
+    it "is active for that outlet" do
+      expect(@rollout).to be_active(:chat, double(id: "outlet-72"))
     end
 
-    it "remains inactive for other users" do
-      expect(@rollout).not_to be_active(:chat, double(id: "user-12"))
+    it "remains inactive for other outlets" do
+      expect(@rollout).not_to be_active(:chat, double(id: "outlet-12"))
     end
   end
 
-  describe "activating a group of users" do
-    context "specified by user objects" do
-      let(:users) { [double(id: 1), double(id: 2), double(id: 3)] }
+  describe "activating a group of outlets" do
+    context "specified by outlet objects" do
+      let(:outlets) { [double(id: 1), double(id: 2), double(id: 3)] }
 
-      before { @rollout.activate_users(:chat, users) }
+      before { @rollout.activate_outlets(:chat, outlets) }
 
-      it "is active for the given users" do
-        users.each { |user| expect(@rollout).to be_active(:chat, user) }
+      it "is active for the given outlets" do
+        outlets.each { |outlet| expect(@rollout).to be_active(:chat, outlet) }
       end
 
-      it "remains inactive for other users" do
+      it "remains inactive for other outlets" do
         expect(@rollout).not_to be_active(:chat, double(id: 4))
       end
     end
 
-    context "specified by user ids" do
-      let(:users) { [1, 2, 3] }
+    context "specified by outlet ids" do
+      let(:outlets) { [1, 2, 3] }
 
-      before { @rollout.activate_users(:chat, users) }
+      before { @rollout.activate_outlets(:chat, outlets) }
 
-      it "is active for the given users" do
-        users.each { |user| expect(@rollout).to be_active(:chat, user) }
+      it "is active for the given outlets" do
+        outlets.each { |outlet| expect(@rollout).to be_active(:chat, outlet) }
       end
 
-      it "remains inactive for other users" do
+      it "remains inactive for other outlets" do
         expect(@rollout).not_to be_active(:chat, 4)
       end
     end
   end
 
-  describe "deactivating a specific user" do
+  describe "deactivating a specific outlet" do
     before do
-      @rollout.activate_user(:chat, double(id: 42))
-      @rollout.activate_user(:chat, double(id: 4242))
-      @rollout.activate_user(:chat, double(id: 24))
-      @rollout.deactivate_user(:chat, double(id: 42))
-      @rollout.deactivate_user(:chat, double(id: "4242"))
+      @rollout.activate_outlet(:chat, double(id: 42))
+      @rollout.activate_outlet(:chat, double(id: 4242))
+      @rollout.activate_outlet(:chat, double(id: 24))
+      @rollout.deactivate_outlet(:chat, double(id: 42))
+      @rollout.deactivate_outlet(:chat, double(id: "4242"))
     end
 
-    it "that user should no longer be active" do
+    it "that outlet should no longer be active" do
       expect(@rollout).not_to be_active(:chat, double(id: 42))
     end
 
-    it "remains active for other active users" do
+    it "remains active for other active outlets" do
       @options = @rollout.instance_variable_get("@options")
       @options[:use_sets] = false
-      expect(@rollout.get(:chat).users).to eq %w(24)
+      expect(@rollout.get(:chat).outlets).to eq %w(24)
     end
 
-    it "remains active for other active users using sets" do
+    it "remains active for other active outlets using sets" do
       @options = @rollout.instance_variable_get("@options")
       @options[:use_sets] = true
 
-      expect(@rollout.get(:chat).users).to eq %w(24).to_set
+      expect(@rollout.get(:chat).outlets).to eq %w(24).to_set
     end
   end
 
-  describe "deactivating a group of users" do
-    context "specified by user objects" do
-      let(:active_users) { [double(id: 1), double(id: 2)] }
-      let(:inactive_users) { [double(id: 3), double(id: 4)] }
+  describe "deactivating a group of outlets" do
+    context "specified by outlet objects" do
+      let(:active_outlets) { [double(id: 1), double(id: 2)] }
+      let(:inactive_outlets) { [double(id: 3), double(id: 4)] }
 
       before do
-        @rollout.activate_users(:chat, active_users + inactive_users)
-        @rollout.deactivate_users(:chat, inactive_users)
+        @rollout.activate_outlets(:chat, active_outlets + inactive_outlets)
+        @rollout.deactivate_outlets(:chat, inactive_outlets)
       end
 
-      it "is active for the active users" do
-        active_users.each { |user| expect(@rollout).to be_active(:chat, user) }
+      it "is active for the active outlets" do
+        active_outlets.each { |outlet| expect(@rollout).to be_active(:chat, outlet) }
       end
 
-      it "is not active for inactive users" do
-        inactive_users.each { |user| expect(@rollout).not_to be_active(:chat, user) }
+      it "is not active for inactive outlets" do
+        inactive_outlets.each { |outlet| expect(@rollout).not_to be_active(:chat, outlet) }
       end
     end
 
-    context "specified by user ids" do
-      let(:active_users) { [1, 2] }
-      let(:inactive_users) { [3, 4] }
+    context "specified by outlet ids" do
+      let(:active_outlets) { [1, 2] }
+      let(:inactive_outlets) { [3, 4] }
 
       before do
-        @rollout.activate_users(:chat, active_users + inactive_users)
-        @rollout.deactivate_users(:chat, inactive_users)
+        @rollout.activate_outlets(:chat, active_outlets + inactive_outlets)
+        @rollout.deactivate_outlets(:chat, inactive_outlets)
       end
 
-      it "is active for the active users" do
-        active_users.each { |user| expect(@rollout).to be_active(:chat, user) }
+      it "is active for the active outlets" do
+        active_outlets.each { |outlet| expect(@rollout).to be_active(:chat, outlet) }
       end
 
-      it "is not active for inactive users" do
-        inactive_users.each { |user| expect(@rollout).not_to be_active(:chat, user) }
+      it "is not active for inactive outlets" do
+        inactive_outlets.each { |outlet| expect(@rollout).not_to be_active(:chat, outlet) }
       end
     end
   end
 
 
-  describe 'set a group of users' do
-    it 'should replace the users with the given array' do
-      users = %w(1 2 3 4)
-      @rollout.activate_users(:chat, %w(10 20 30))
-      @rollout.set_users(:chat, users)
-      expect(@rollout.get(:chat).users).to eq(users)
+  describe 'set a group of outlets' do
+    it 'should replace the outlets with the given array' do
+      outlets = %w(1 2 3 4)
+      @rollout.activate_outlets(:chat, %w(10 20 30))
+      @rollout.set_outlets(:chat, outlets)
+      expect(@rollout.get(:chat).outlets).to eq(outlets)
     end
   end
 
@@ -250,89 +250,89 @@ RSpec.describe "Rollout" do
     end
   end
 
-  describe "activating a feature for a percentage of users" do
+  describe "activating a feature for a percentage of outlets" do
     before do
       @rollout.activate_percentage(:chat, 20)
     end
 
-    it "activates the feature for that percentage of the users" do
+    it "activates the feature for that percentage of the outlets" do
       expect((1..100).select { |id| @rollout.active?(:chat, double(id: id)) }.length).to be_within(2).of(20)
     end
   end
 
-  describe "activating a feature for a percentage of users" do
+  describe "activating a feature for a percentage of outlets" do
     before do
       @rollout.activate_percentage(:chat, 20)
     end
 
-    it "activates the feature for that percentage of the users" do
+    it "activates the feature for that percentage of the outlets" do
       expect((1..200).select { |id| @rollout.active?(:chat, double(id: id)) }.length).to be_within(4).of(40)
     end
   end
 
-  describe "activating a feature for a percentage of users" do
+  describe "activating a feature for a percentage of outlets" do
     before do
       @rollout.activate_percentage(:chat, 5)
     end
 
-    it "activates the feature for that percentage of the users" do
+    it "activates the feature for that percentage of the outlets" do
       expect((1..100).select { |id| @rollout.active?(:chat, double(id: id)) }.length).to be_within(2).of(5)
     end
   end
 
-  describe "activating a feature for a percentage of users" do
+  describe "activating a feature for a percentage of outlets" do
     before do
       @rollout.activate_percentage(:chat, 0.1)
     end
 
-    it "activates the feature for that percentage of the users" do
+    it "activates the feature for that percentage of the outlets" do
       expect((1..10_000).to_set.select { |id| @rollout.active?(:chat, double(id: id)) }.length).to be_within(2).of(10)
     end
   end
 
-  describe "activating a feature for a percentage of users" do
+  describe "activating a feature for a percentage of outlets" do
     before do
       @rollout.activate_percentage(:chat, 20)
       @rollout.activate_percentage(:beta, 20)
       @options = @rollout.instance_variable_get("@options")
     end
 
-    it "activates the feature for a random set of users when opt is set" do
+    it "activates the feature for a random set of outlets when opt is set" do
       @options[:randomize_percentage] = true
-      chat_users = (1..100).select { |id| @rollout.active?(:chat, double(id: id)) }
-      beta_users = (1..100).select { |id| @rollout.active?(:beta, double(id: id)) }
-      expect(chat_users).not_to eq beta_users
+      chat_outlets = (1..100).select { |id| @rollout.active?(:chat, double(id: id)) }
+      beta_outlets = (1..100).select { |id| @rollout.active?(:beta, double(id: id)) }
+      expect(chat_outlets).not_to eq beta_outlets
     end
-    it "activates the feature for the same set of users when opt is not set" do
+    it "activates the feature for the same set of outlets when opt is not set" do
       @options[:randomize_percentage] = false
-      chat_users = (1..100).select { |id| @rollout.active?(:chat, double(id: id)) }
-      beta_users = (1..100).select { |id| @rollout.active?(:beta, double(id: id)) }
-      expect(chat_users).to eq beta_users
+      chat_outlets = (1..100).select { |id| @rollout.active?(:chat, double(id: id)) }
+      beta_outlets = (1..100).select { |id| @rollout.active?(:beta, double(id: id)) }
+      expect(chat_outlets).to eq beta_outlets
     end
   end
 
   describe "activating a feature for a group as a string" do
     before do
-      @rollout.define_group(:admins) { |user| user.id == 5 }
+      @rollout.define_group(:admins) { |outlet| outlet.id == 5 }
       @rollout.activate_group(:chat, "admins")
     end
 
-    it "the feature is active for users for which the block evaluates to true" do
+    it "the feature is active for outlets for which the block evaluates to true" do
       expect(@rollout).to be_active(:chat, double(id: 5))
     end
 
-    it "is not active for users for which the block evaluates to false" do
+    it "is not active for outlets for which the block evaluates to false" do
       expect(@rollout).not_to be_active(:chat, double(id: 1))
     end
   end
 
-  describe "deactivating the percentage of users" do
+  describe "deactivating the percentage of outlets" do
     before do
       @rollout.activate_percentage(:chat, 100)
       @rollout.deactivate_percentage(:chat)
     end
 
-    it "becomes inactivate for all users" do
+    it "becomes inactivate for all outlets" do
       expect(@rollout).not_to be_active(:chat, double(id: 24))
     end
   end
@@ -419,23 +419,23 @@ RSpec.describe "Rollout" do
       @rollout.activate_group(:chat, :caretakers)
       @rollout.activate_group(:chat, :greeters)
       @rollout.activate(:signup)
-      @rollout.activate_user(:chat, double(id: 42))
+      @rollout.activate_outlet(:chat, double(id: 42))
     end
 
     it "returns the feature object" do
       feature = @rollout.get(:chat)
       expect(feature.groups).to eq [:caretakers, :greeters]
       expect(feature.percentage).to eq 10
-      expect(feature.users).to eq %w(42)
+      expect(feature.outlets).to eq %w(42)
       expect(feature.to_hash).to eq(
         groups: [:caretakers, :greeters],
         percentage: 10,
-        users: %w(42)
+        outlets: %w(42)
       )
 
       feature = @rollout.get(:signup)
       expect(feature.groups).to be_empty
-      expect(feature.users).to be_empty
+      expect(feature.outlets).to be_empty
       expect(feature.percentage).to eq(100)
     end
 
@@ -446,16 +446,16 @@ RSpec.describe "Rollout" do
       feature = @rollout.get(:chat)
       expect(feature.groups).to eq [:caretakers, :greeters].to_set
       expect(feature.percentage).to eq 10
-      expect(feature.users).to eq %w(42).to_set
+      expect(feature.outlets).to eq %w(42).to_set
       expect(feature.to_hash).to eq(
         groups: [:caretakers, :greeters].to_set,
         percentage: 10,
-        users: %w(42).to_set
+        outlets: %w(42).to_set
       )
 
       feature = @rollout.get(:signup)
       expect(feature.groups).to be_empty
-      expect(feature.users).to be_empty
+      expect(feature.outlets).to be_empty
       expect(feature.percentage).to eq(100)
     end
   end
@@ -473,7 +473,7 @@ RSpec.describe "Rollout" do
       features.each do |feature|
         expect(@rollout.get(feature).to_hash).to eq(
           percentage: 0,
-          users: [],
+          outlets: [],
           groups: []
         )
       end
@@ -485,7 +485,7 @@ RSpec.describe "Rollout" do
       features.each do |feature|
         expect(@rollout.get(feature).to_hash).to eq(
           percentage: 0,
-          users: Set.new,
+          outlets: Set.new,
           groups: Set.new
         )
       end
@@ -497,11 +497,11 @@ RSpec.describe "Rollout" do
   end
 
   describe "#feature_states" do
-    let(:user_double) { double(id: 7) }
+    let(:outlet_double) { double(id: 7) }
 
     before do
       @rollout.activate(:chat)
-      @rollout.activate_user(:video, user_double)
+      @rollout.activate_outlet(:video, outlet_double)
       @rollout.deactivate(:vr)
     end
 
@@ -509,9 +509,9 @@ RSpec.describe "Rollout" do
       expect(@rollout.feature_states).to be_a(Hash)
     end
 
-    context "with user argument" do
+    context "with outlet argument" do
       it "maps active feature as true" do
-        state = @rollout.feature_states(user_double)[:video]
+        state = @rollout.feature_states(outlet_double)[:video]
         expect(state).to eq(true)
       end
 
@@ -535,11 +535,11 @@ RSpec.describe "Rollout" do
   end
 
   describe "#active_features" do
-    let(:user_double) { double(id: 19) }
+    let(:outlet_double) { double(id: 19) }
 
     before do
       @rollout.activate(:chat)
-      @rollout.activate_user(:video, user_double)
+      @rollout.activate_outlet(:video, outlet_double)
       @rollout.deactivate(:vr)
     end
 
@@ -547,15 +547,15 @@ RSpec.describe "Rollout" do
       expect(@rollout.active_features).to be_a(Array)
     end
 
-    context "with user argument" do
+    context "with outlet argument" do
       it "includes active feature" do
-        features = @rollout.active_features(user_double)
+        features = @rollout.active_features(outlet_double)
         expect(features).to include(:video)
         expect(features).to include(:chat)
       end
 
       it "excludes inactive feature" do
-        features = @rollout.active_features(user_double)
+        features = @rollout.active_features(outlet_double)
         expect(features).to_not include(:vr)
       end
     end
@@ -573,15 +573,15 @@ RSpec.describe "Rollout" do
     end
   end
 
-  describe "#user_in_active_users?" do
-    it "returns true if activated for user" do
-      @rollout.activate_user(:chat, double(id: 5))
-      expect(@rollout.user_in_active_users?(:chat, "5")).to eq(true)
+  describe "#outlet_in_active_outlets?" do
+    it "returns true if activated for outlet" do
+      @rollout.activate_outlet(:chat, double(id: 5))
+      expect(@rollout.outlet_in_active_outlets?(:chat, "5")).to eq(true)
     end
 
     it "returns false if activated for group" do
       @rollout.activate_group(:chat, :all)
-      expect(@rollout.user_in_active_users?(:chat, "5")).to eq(false)
+      expect(@rollout.outlet_in_active_outlets?(:chat, "5")).to eq(false)
     end
   end
 
@@ -591,7 +591,7 @@ RSpec.describe "Rollout" do
       @rollout.activate_group(:chat, :caretakers)
       @rollout.activate_group(:videos, :greeters)
       @rollout.activate(:signup)
-      @rollout.activate_user(:photos, double(id: 42))
+      @rollout.activate_outlet(:photos, double(id: 42))
     end
 
     it "returns an array of features" do
@@ -640,11 +640,11 @@ RSpec.describe "Rollout" do
     end
 
     it 'properly parses data when it contains a |' do
-      user = double("User", id: 8)
-      @rollout.activate_user(:chat, user)
+      outlet = double("User", id: 8)
+      @rollout.activate_outlet(:chat, outlet)
       @rollout.set_feature_data(:chat, "|call||text|" => "a|bunch|of|stuff")
       expect(@rollout.get(:chat).data).to include("|call||text|" => "a|bunch|of|stuff")
-      expect(@rollout.active?(:chat, user)).to be true
+      expect(@rollout.active?(:chat, outlet)).to be true
     end
   end
 
@@ -670,12 +670,12 @@ RSpec.describe "Rollout" do
 end
 
 describe "Rollout::Feature" do
-  describe "#add_user" do
-    it "ids a user using id_user_by" do
-      user    = double("User", email: "test@test.com")
-      feature = Rollout::Feature.new(:chat, nil, id_user_by: :email)
-      feature.add_user(user)
-      expect(user).to have_received :email
+  describe "#add_outlet" do
+    it "ids a outlet using id_outlet_by" do
+      outlet    = double("User", email: "test@test.com")
+      feature = Rollout::Feature.new(:chat, nil, id_outlet_by: :email)
+      feature.add_outlet(outlet)
+      expect(outlet).to have_received :email
     end
   end
 
@@ -684,7 +684,7 @@ describe "Rollout::Feature" do
       it 'clears feature attributes when string is not given' do
         feature = Rollout::Feature.new(:chat)
         expect(feature.groups).to be_empty
-        expect(feature.users).to be_empty
+        expect(feature.outlets).to be_empty
         expect(feature.percentage).to eq 0
         expect(feature.data).to eq({})
       end
@@ -692,7 +692,7 @@ describe "Rollout::Feature" do
       it 'clears feature attributes when string is nil' do
         feature = Rollout::Feature.new(:chat, nil)
         expect(feature.groups).to be_empty
-        expect(feature.users).to be_empty
+        expect(feature.outlets).to be_empty
         expect(feature.percentage).to eq 0
         expect(feature.data).to eq({})
       end
@@ -700,7 +700,7 @@ describe "Rollout::Feature" do
       it 'clears feature attributes when string is empty string' do
         feature = Rollout::Feature.new(:chat, "")
         expect(feature.groups).to be_empty
-        expect(feature.users).to be_empty
+        expect(feature.outlets).to be_empty
         expect(feature.percentage).to eq 0
         expect(feature.data).to eq({})
       end

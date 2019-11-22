@@ -5,9 +5,9 @@ require "json"
 
 class Rollout
   RAND_BASE = (2**32 - 1) / 100.0
-  
+
   class Feature
-    attr_accessor :groups, :users, :percentage, :data
+    attr_accessor :groups, :outlets, :percentage, :data
     attr_reader :name, :options
 
     def initialize(name, string = nil, opts = {})
@@ -15,9 +15,9 @@ class Rollout
       @name    = name
 
       if string
-        raw_percentage,raw_users,raw_groups,raw_data = string.split('|', 4)
+        raw_percentage,raw_outlets,raw_groups,raw_data = string.split('|', 4)
         @percentage = raw_percentage.to_f
-        @users = users_from_string(raw_users)
+        @outlets = outlets_from_string(raw_outlets)
         @groups = groups_from_string(raw_groups)
         @data = raw_data.nil? || raw_data.strip.empty? ? {} : JSON.parse(raw_data)
       else
@@ -26,16 +26,16 @@ class Rollout
     end
 
     def serialize
-      "#{@percentage}|#{@users.to_a.join(",")}|#{@groups.to_a.join(",")}|#{serialize_data}"
+      "#{@percentage}|#{@outlets.to_a.join(",")}|#{@groups.to_a.join(",")}|#{serialize_data}"
     end
 
-    def add_user(user)
-      id = user_id(user)
-      @users << id unless @users.include?(id)
+    def add_outlet(outlet)
+      id = outlet_id(outlet)
+      @outlets << id unless @outlets.include?(id)
     end
 
-    def remove_user(user)
-      @users.delete(user_id(user))
+    def remove_outlet(outlet)
+      @outlets.delete(outlet_id(outlet))
     end
 
     def add_group(group)
@@ -48,62 +48,62 @@ class Rollout
 
     def clear
       @groups = groups_from_string("")
-      @users = users_from_string("")
+      @outlets = outlets_from_string("")
       @percentage = 0
       @data = {}
     end
 
-    def active?(rollout, user)
-      if user
-        id = user_id(user)
-        user_in_percentage?(id) ||
-          user_in_active_users?(id) ||
-            user_in_active_group?(user, rollout)
+    def active?(rollout, outlet)
+      if outlet
+        id = outlet_id(outlet)
+        outlet_in_percentage?(id) ||
+          outlet_in_active_outlets?(id) ||
+            outlet_in_active_group?(outlet, rollout)
       else
         @percentage == 100
       end
     end
 
-    def user_in_active_users?(user)
-      @users.include?(user_id(user))
+    def outlet_in_active_outlets?(outlet)
+      @outlets.include?(outlet_id(outlet))
     end
 
     def to_hash
       {
         percentage: @percentage,
         groups: @groups,
-        users: @users
+        outlets: @outlets
       }
     end
 
     private
-      def user_id(user)
-        if user.is_a?(Integer) || user.is_a?(String)
-          user.to_s
+      def outlet_id(outlet)
+        if outlet.is_a?(Integer) || outlet.is_a?(String)
+          outlet.to_s
         else
-          user.send(id_user_by).to_s
+          outlet.send(id_outlet_by).to_s
         end
       end
 
-      def id_user_by
-        @options[:id_user_by] || :id
+      def id_outlet_by
+        @options[:id_outlet_by] || :id
       end
 
-      def user_in_percentage?(user)
-        Zlib.crc32(user_id_for_percentage(user)) < RAND_BASE * @percentage
+      def outlet_in_percentage?(outlet)
+        Zlib.crc32(outlet_id_for_percentage(outlet)) < RAND_BASE * @percentage
       end
 
-      def user_id_for_percentage(user)
+      def outlet_id_for_percentage(outlet)
         if @options[:randomize_percentage]
-          user_id(user).to_s + @name.to_s
+          outlet_id(outlet).to_s + @name.to_s
         else
-          user_id(user)
+          outlet_id(outlet)
         end
       end
 
-      def user_in_active_group?(user, rollout)
+      def outlet_in_active_group?(outlet, rollout)
         @groups.any? do |g|
-          rollout.active_in_group?(g, user)
+          rollout.active_in_group?(g, outlet)
         end
       end
 
@@ -113,12 +113,12 @@ class Rollout
         @data.to_json
       end
 
-      def users_from_string(raw_users)
-        users = (raw_users || "").split(",").map(&:to_s)
+      def outlets_from_string(raw_outlets)
+        outlets = (raw_outlets || "").split(",").map(&:to_s)
         if @options[:use_sets]
-          users.to_set
+          outlets.to_set
         else
-          users
+          outlets
         end
       end
 
@@ -135,7 +135,7 @@ class Rollout
   def initialize(storage, opts = {})
     @storage = storage
     @options = opts
-    @groups  = { all: lambda { |user| true } }
+    @groups  = { all: lambda { |outlet| true } }
   end
 
   def activate(feature)
@@ -179,34 +179,34 @@ class Rollout
     end
   end
 
-  def activate_user(feature, user)
+  def activate_outlet(feature, outlet)
     with_feature(feature) do |f|
-      f.add_user(user)
+      f.add_outlet(outlet)
     end
   end
 
-  def deactivate_user(feature, user)
+  def deactivate_outlet(feature, outlet)
     with_feature(feature) do |f|
-      f.remove_user(user)
+      f.remove_outlet(outlet)
     end
   end
 
-  def activate_users(feature, users)
+  def activate_outlets(feature, outlets)
     with_feature(feature) do |f|
-      users.each{|user| f.add_user(user)}
+      outlets.each{|outlet| f.add_outlet(outlet)}
     end
   end
 
-  def deactivate_users(feature, users)
+  def deactivate_outlets(feature, outlets)
     with_feature(feature) do |f|
-      users.each{|user| f.remove_user(user)}
+      outlets.each{|outlet| f.remove_outlet(outlet)}
     end
   end
 
-  def set_users(feature, users)
+  def set_outlets(feature, outlets)
     with_feature(feature) do |f|
-      f.users = []
-      users.each{|user| f.add_user(user)}
+      f.outlets = []
+      outlets.each{|outlet| f.add_outlet(outlet)}
     end
   end
 
@@ -214,18 +214,18 @@ class Rollout
     @groups[group.to_sym] = block
   end
 
-  def active?(feature, user = nil)
+  def active?(feature, outlet = nil)
     feature = get(feature)
-    feature.active?(self, user)
+    feature.active?(self, outlet)
   end
 
-  def user_in_active_users?(feature, user = nil)
+  def outlet_in_active_outlets?(feature, outlet = nil)
     feature = get(feature)
-    feature.user_in_active_users?(user)
+    feature.outlet_in_active_outlets?(outlet)
   end
 
-  def inactive?(feature, user = nil)
-    !active?(feature, user)
+  def inactive?(feature, outlet = nil)
+    !active?(feature, outlet)
   end
 
   def activate_percentage(feature, percentage)
@@ -240,9 +240,9 @@ class Rollout
     end
   end
 
-  def active_in_group?(group, user)
+  def active_in_group?(group, outlet)
     f = @groups[group.to_sym]
-    f && f.call(user)
+    f && f.call(outlet)
   end
 
   def get(feature)
@@ -271,15 +271,15 @@ class Rollout
     (@storage.get(features_key) || "").split(",").map(&:to_sym)
   end
 
-  def feature_states(user = nil)
+  def feature_states(outlet = nil)
     features.each_with_object({}) do |f, hash|
-      hash[f] = active?(f, user)
+      hash[f] = active?(f, outlet)
     end
   end
 
-  def active_features(user = nil)
+  def active_features(outlet = nil)
     features.select do |f|
-      active?(f, user)
+      active?(f, outlet)
     end
   end
 
